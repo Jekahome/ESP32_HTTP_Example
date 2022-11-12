@@ -403,6 +403,7 @@ esp_err_t module_HTTP::index_get_handler(httpd_req_t *req){
     httpd_resp_send(req,  (char*)page_hex_html, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
+
 // An HTTP POST handler 
 esp_err_t ledOn(httpd_req_t *req) {
     ESP_LOGI(TAG, "ON LED"); 
@@ -415,6 +416,7 @@ esp_err_t ledOn(httpd_req_t *req) {
     httpd_resp_send(req, ledJSON, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
+
 // An HTTP POST handler 
 esp_err_t ledOff(httpd_req_t *req) {
     ESP_LOGI(TAG, "OFF LED"); 
@@ -483,14 +485,12 @@ httpd_handle_t module_HTTP::start_http_server(void){
         .handler   = module_HTTP::index_get_handler,
         .user_ctx  = basic_auth_info
     };
-
     const httpd_uri_t image_uri = {
         .uri       = "/winter.png",
         .method    = HTTP_GET,
         .handler   = image_handler,
         .user_ctx  = NULL
     };
-
     const httpd_uri_t ledOnUri = {
         .uri       = "/ledOn",
         .method    = HTTP_POST,
@@ -503,15 +503,12 @@ httpd_handle_t module_HTTP::start_http_server(void){
         .handler   = ledOff,
         .user_ctx  = basic_auth_info
     };
-    
-
     const httpd_uri_t h_json = {
         .uri       = "/command",
         .method    = HTTP_POST,
         .handler   = module_HTTP::json_post_handler,
         .user_ctx  = basic_auth_info 
     };
-
     const httpd_uri_t h_echo = {
         .uri       = "/echo",
         .method    = HTTP_POST,
@@ -535,7 +532,6 @@ httpd_handle_t module_HTTP::start_http_server(void){
         httpd_register_err_handler(server_httpd, HTTPD_404_NOT_FOUND, module_HTTP::http_404_error_handler);
         return server_httpd;
     }
-
     ESP_LOGE(TAG, "Error starting server!");
     return NULL;
 }
