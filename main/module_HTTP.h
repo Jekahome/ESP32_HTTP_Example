@@ -17,6 +17,9 @@
 #include "driver/gpio.h"
 #include "esp_tls.h"
 
+#include "esp_https_server.h"
+ 
+
 /* A simple example that demonstrates how to create GET and POST
  * handlers for the web server.
  */
@@ -48,11 +51,14 @@ public:
     module_HTTP();
     
     // HTTP Server
-    httpd_handle_t start_http_server();
-    void stop_http_server();
+    httpd_handle_t start_http_webserver();
+    httpd_handle_t start_https_webserver();
+    static void stop_http_server();
+    static void stop_https_server();
     static esp_err_t json_post_handler(httpd_req_t *req);
     static esp_err_t echo_post_handler(httpd_req_t *req);
     static esp_err_t index_get_handler(httpd_req_t *req);
+    static esp_err_t index_get_handler_https(httpd_req_t *req);
     static char* http_auth_basic(const char *username, const char *password);
     static bool check_auth(httpd_req_t *req);
     static esp_err_t http_404_error_handler(httpd_req_t *req, httpd_err_code_t err);

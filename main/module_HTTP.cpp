@@ -79,10 +79,10 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt){
         }
         case HTTP_EVENT_ON_DATA:{
             ESP_LOGD(TAG, "HTTP_EVENT_ON_DATA, len=%d", evt->data_len);
-            /*
-             *  Check for chunked encoding is added as the URL for chunked encoding used in this example returns binary data.
-             *  However, event handler can also be used in case chunked encoding is used.
-             */
+             //
+             //  Check for chunked encoding is added as the URL for chunked encoding used in this example returns binary data.
+             //  However, event handler can also be used in case chunked encoding is used.
+             //
             if (!esp_http_client_is_chunked_response(evt->client)) {
                 // If user_data buffer is configured, copy the response into the buffer
                 if (evt->user_data) {
@@ -161,10 +161,10 @@ char *module_HTTP::http_auth_basic(const char *username, const char *password){
     }
     esp_crypto_base64_encode(NULL, 0, &n, (const unsigned char *)user_info, strlen(user_info));
 
-    /* 6: The length of the "Basic " string
-     * n: Number of bytes for a base64 encode format
-     * 1: Number of bytes for a reserved which be used to fill zero
-    */
+    // 6: The length of the "Basic " string
+    // n: Number of bytes for a base64 encode format
+    // 1: Number of bytes for a reserved which be used to fill zero
+    //
     digest = (char*)calloc(1, 6 + n + 1);
     if (digest) {
         strcpy(digest, "Basic ");
@@ -390,14 +390,40 @@ esp_err_t module_HTTP::echo_post_handler(httpd_req_t *req){
 }
 //--------------------------------------------------------------------------------------------------------------------
  
-// An HTTP GET handler 
-// TODO:`page_hex_html` from file hex_html_page.h
-//
-// http://192.168.1.166:80/
+ 
+/*
+    An HTTP GET handler 
+
+    TODO:`page_hex_html` from file hex_html_page.h
+
+    Игнорирует недостоверный сертификат (самоподписанный)
+    https://itsecforu.ru/2020/02/12/%F0%9F%94%91-%D0%BA%D0%B0%D0%BA-%D0%B8%D0%B3%D0%BD%D0%BE%D1%80%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D1%82%D1%8C-%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D0%B8-%D0%BD%D0%B5%D0%B4%D0%BE%D1%81%D1%82%D0%BE%D0%B2%D0%B5/
+
+    $ curl -k  <URL>
+    
+    Use curl:
+    $ curl -k -X GET  https://192.168.1.166/
+
+    Error:
+      E (5583) esp-tls-mbedtls: mbedtls_ssl_handshake returned -0x7780
+      E (5584) esp_https_server: esp_tls_create_server_session failed
+*/
 esp_err_t module_HTTP::index_get_handler(httpd_req_t *req){
     // GET req->method == 1
     //module_HTTP::check_auth(req);
   
+    // Для рукопожатия требуется свободная память в heap 40 КБ - 45 КБ
+    uint32_t free_heap_size=0, min_free_heap_size=0;
+    free_heap_size = esp_get_free_heap_size();
+    min_free_heap_size = esp_get_minimum_free_heap_size(); 
+    printf("\n free heap size = %ld \t  min_free_heap_size = %ld \n",free_heap_size,min_free_heap_size);                   
+    // free heap size = 195228          min_free_heap_size = 187016 
+    // свободно 187016 из необходимых 40000 bytes
+    if (min_free_heap_size < 40000){
+        ESP_LOGE(TAG, "Not enough memory in heap .Need 40kb"); 
+    }
+    
+
     httpd_resp_set_type(req, "text/html");
     //httpd_resp_send(req, index_html, HTTPD_RESP_USE_STRLEN);
     httpd_resp_send(req,  (char*)page_hex_html, HTTPD_RESP_USE_STRLEN);
@@ -445,20 +471,123 @@ static esp_err_t image_handler(httpd_req_t *req){
 esp_err_t module_HTTP::http_404_error_handler(httpd_req_t *req, httpd_err_code_t err){
     if (strcmp("/hello", req->uri) == 0) {
         httpd_resp_send_err(req, HTTPD_404_NOT_FOUND, "/hello URI is not available");
-        /* Return ESP_OK to keep underlying socket open */
+        // Return ESP_OK to keep underlying socket open 
         return ESP_OK;
     } else if (strcmp("/echo", req->uri) == 0) {
         httpd_resp_send_err(req, HTTPD_404_NOT_FOUND, "/echo URI is not available");
-        /* Return ESP_FAIL to close underlying socket */
+        // Return ESP_FAIL to close underlying socket 
         return ESP_FAIL;
     }
-    /* For any other URI send 404 and close socket */
+    // For any other URI send 404 and close socket 
     httpd_resp_send_err(req, HTTPD_404_NOT_FOUND, "URI not found");
     return ESP_FAIL;
 }
-//--------------------------------------------------------------------------------------------------------------------
 
-httpd_handle_t module_HTTP::start_http_server(void){
+//--------------------------------------------------------------------------------------------------------------------
+ 
+/*
+Отключить защиту в Chrome
+Chrome->Настройки->Конфиденциальность и безопасность ->Безопасность->Безопасный просмотр(Защита отключена)
+*/
+httpd_handle_t module_HTTP::start_https_webserver(void){
+     
+    // Start the httpd server
+    ESP_LOGI(TAG, "Starting HTTPS server");
+
+    httpd_ssl_config_t conf = HTTPD_SSL_CONFIG_DEFAULT();
+    conf.httpd.lru_purge_enable = true;
+    conf.httpd.max_open_sockets = 3;
+    conf.httpd.max_resp_headers = 5; // Максимальное количество пользовательских заголовков
+    conf.httpd.stack_size = 8192;// Максимальный размер стека, разрешенный для задачи сервера
+    conf.httpd.server_port = 80;// Номер порта TCP для приема и передачи трафика HTTP
+    conf.httpd.max_uri_handlers = 10;// Максимально допустимые URI обработчики
+    conf.httpd.lru_purge_enable = true;// Очистить соединение «Наименее недавно использованное»
+    conf.httpd.recv_wait_timeout = 10;
+    conf.httpd.send_wait_timeout = 10;
+
+    extern const unsigned char cacert_start[] asm("_binary_cacert_pem_start");
+    extern const unsigned char cacert_end[]   asm("_binary_cacert_pem_end");
+    conf.servercert = cacert_start;
+    conf.servercert_len = cacert_end - cacert_start;
+
+    extern const unsigned char prvtkey_pem_start[] asm("_binary_prvtkey_pem_start");
+    extern const unsigned char prvtkey_pem_end[]   asm("_binary_prvtkey_pem_end");
+    conf.prvtkey_pem = prvtkey_pem_start;
+    conf.prvtkey_len = prvtkey_pem_end - prvtkey_pem_start;
+
+/*#if CONFIG_EXAMPLE_ENABLE_HTTPS_USER_CALLBACK
+    conf.user_cb = https_server_user_callback;
+#endif*/
+
+    basic_auth_info_t *basic_auth_info = (basic_auth_info_t*)calloc(1, sizeof(basic_auth_info_t));
+    if (basic_auth_info) {
+        basic_auth_info->username = CONFIG_EXAMPLE_BASIC_AUTH_USERNAME;
+        basic_auth_info->password = CONFIG_EXAMPLE_BASIC_AUTH_PASSWORD;
+    }else{
+        ESP_LOGE(TAG, "Error starting server!");
+        return NULL;
+    }
+
+    const httpd_uri_t index_http = {
+        .uri       = "/",
+        .method    = HTTP_GET,
+        .handler   = module_HTTP::index_get_handler,
+        .user_ctx  = basic_auth_info
+    };
+    const httpd_uri_t image_uri = {
+        .uri       = "/winter.png",
+        .method    = HTTP_GET,
+        .handler   = image_handler,
+        .user_ctx  = NULL
+    };
+    const httpd_uri_t ledOnUri = {
+        .uri       = "/ledOn",
+        .method    = HTTP_POST,
+        .handler   = ledOn,
+        .user_ctx  = basic_auth_info
+    };
+    const httpd_uri_t ledOffUri = {
+        .uri       = "/ledOff",
+        .method    = HTTP_POST,
+        .handler   = ledOff,
+        .user_ctx  = basic_auth_info
+    };
+    const httpd_uri_t h_json = {
+        .uri       = "/command",
+        .method    = HTTP_POST,
+        .handler   = module_HTTP::json_post_handler,
+        .user_ctx  = basic_auth_info 
+    };
+    const httpd_uri_t h_echo = {
+        .uri       = "/echo",
+        .method    = HTTP_POST,
+        .handler   = module_HTTP::echo_post_handler,
+        .user_ctx  = basic_auth_info 
+    };
+ 
+    // Set URI handlers
+    ESP_LOGI(TAG, "Registering URI handlers");
+    if (httpd_ssl_start(&server_httpd, &conf) == ESP_OK) {
+        // Set URI handlers
+        ESP_LOGI(TAG, "Registering URI handlers:");
+        ESP_LOGI(TAG, "POST: %s",h_json.uri);
+        ESP_LOGI(TAG, "POST: %s",h_echo.uri);
+        httpd_register_uri_handler(server_httpd, &index_http);
+        httpd_register_uri_handler(server_httpd, &image_uri);
+        httpd_register_uri_handler(server_httpd, &ledOnUri);
+        httpd_register_uri_handler(server_httpd, &ledOffUri);
+        httpd_register_uri_handler(server_httpd, &h_echo);
+        httpd_register_uri_handler(server_httpd, &h_json);
+        httpd_register_err_handler(server_httpd, HTTPD_404_NOT_FOUND, module_HTTP::http_404_error_handler);
+        return server_httpd;
+    }
+    ESP_LOGI(TAG, "Error starting server!");
+    return NULL;  
+}
+
+httpd_handle_t module_HTTP::start_http_webserver(void){
+    /*
+    ESP_LOGI(TAG, "Starting HTTP server");
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.lru_purge_enable = true;
     config.max_open_sockets = 3;
@@ -533,6 +662,7 @@ httpd_handle_t module_HTTP::start_http_server(void){
         return server_httpd;
     }
     ESP_LOGE(TAG, "Error starting server!");
+    */
     return NULL;
 }
 
@@ -541,5 +671,12 @@ void module_HTTP::stop_http_server(){
     if (&server_httpd != NULL) {
         // Stop the httpd server
         httpd_stop(&server_httpd);
+    }
+}
+
+void module_HTTP::stop_https_server(){
+    if (&server_httpd != NULL) {
+        // Stop the httpd server
+        httpd_ssl_stop(&server_httpd);  
     }
 }

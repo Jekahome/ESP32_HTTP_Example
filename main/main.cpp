@@ -26,7 +26,7 @@
 
 #include "module_HTTP.h"
 
-void run_uart(void);
+//void run_uart(void);
 
 /*
   Run:
@@ -279,7 +279,8 @@ void app_main(void){
     ESP_LOGW(TAG,"PSRAM должен быть отключен в menuconfig\n");
 
     server_HTTP = new module_HTTP();
-    server_HTTP->start_http_server();
+    //server_HTTP->start_http_webserver();
+    server_HTTP->start_https_webserver();
 
     // run_uart();
 

@@ -3,14 +3,14 @@
 
 FILE(GLOB src_files ${PROJECT_DIR}/main/*.cpp)
 
-idf_component_register(SRCS ${src_files} 
+idf_component_register(SRCS ${src_files}
 INCLUDE_DIRS "."
 EMBED_FILES "winter.png"
-REQUIRES tcp_transport nvs_flash esp_http_server sdmmc json esp_http_client fatfs driver esp_netif esp_wifi esp_eth
+EMBED_TXTFILES "certs/cacert.pem" "certs/prvtkey.pem"
+#REQUIRES tcp_transport nvs_flash esp_http_server esp_https_server sdmmc json esp_http_client fatfs driver esp_netif esp_wifi esp_eth
 )
 
  
-
 # https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html#controlling-component-compilation
 # https://cmake.org/cmake/help/v3.5/command/target_compile_options.html
 target_compile_options(${COMPONENT_LIB} PUBLIC  -Wno-unused-variable
