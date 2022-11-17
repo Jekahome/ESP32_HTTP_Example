@@ -395,7 +395,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     }
 }
 
- 
 static esp_err_t mqtt_app_start(void){
     esp_mqtt_client_config_t mqtt_cfg = {};
     mqtt_cfg.broker.address.uri = MQTT_BROKER_URL;// MQTT_BROKER_URL, mqtt://192.168.1.167, mqtt://mqtt.eclipseprojects.io
@@ -418,7 +417,6 @@ static esp_err_t mqtt_app_start(void){
 	}
     return ESP_OK;
 }
-
 
 //--------------------------------------------------------------------------------
 void app_main(void){
