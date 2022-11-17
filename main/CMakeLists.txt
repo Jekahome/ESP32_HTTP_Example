@@ -22,5 +22,6 @@ target_compile_options(${COMPONENT_LIB} PUBLIC  -Wno-unused-variable
                                                 -Wno-missing-field-initializers
                                                 -Wno-unused-function)
 
+target_compile_options(${COMPONENT_LIB} PRIVATE "-Wno-format")
 target_compile_options(${COMPONENT_LIB} PUBLIC -D CONFIG_BLINK_GPIO=2)
 

@@ -1,5 +1,29 @@
 menu "ESP Station IoT Example Configuration"
 
+    config MQTT_BROKER_URL
+        string "Broker URL"
+        default "mqtt://192.168.1.167"
+        help
+            URL of the broker to connect to (mqtt://192.168.1.167, mqtt://mqtt.eclipseprojects.io)
+            
+    config BROKER_BIN_SIZE_TO_SEND
+        # This option is not visible and is used only to set parameters for example tests
+        # Here we configure the data size to send and to be expected in the python script
+        int
+        default 20000
+
+    config MQTT_BROKER_AUTH_USERNAME
+        string "Broker URL"
+        default "Jeka"
+        help
+            Username Authentication.  
+
+    config MQTT_BROKER_AUTH_PASSWORD
+        string "Broker URL"
+        default "1234"
+        help
+            Password Authentication.    
+                                
     config EXAMPLE_BASIC_AUTH
         bool "Authentication"
         default y

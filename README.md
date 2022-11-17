@@ -15,33 +15,50 @@ https://esp32tutorials.com/esp32-web-server-esp-idf/
 
 Парсинг JSON запросов
 
-TLS ?
+HTTP Authentication
 
-MQTT Auth send ?
+MQTT Password Authentication ?
 ```
 
 ```
-Самоподписанный сертификат
+Аутентификация 
+http://www.steves-internet-guide.com/mqtt-username-password-example/
+https://www.v-elite.ru/node/38
 
-$ openssl req -newkey rsa:2048 -nodes -x509 -days 3650 -keyout /home/jeka/Projects/IDE_ESP32_Arduino/learn_Espressif/Esp32_WiFi/certs/prvtkey.pem -out /home/jeka/Projects/IDE_ESP32_Arduino/learn_Espressif/Esp32_WiFi/certs/cacert.pem -subj "/CN=ESP32 HTTPS server example"
+файл с паролем auth_password:
+Jeka:1234
 
-И в menuconfig Enable ESP HTTPS server component
+...теперь шифруем ...
+$ mosquitto_passwd -U auth_password
+...получаем в файле auth_password
+Jeka:$7$101$mxCut/f4xW/EZ...
 
+...далее скопировать файл паролей auth_password в папку /etc/mosquitto
+$ cp -a auth_password /etc/mosquitto
 
-openssl : это базовый инструмент командной строки для создания и управления сертификатами OpenSSL, ключами и другими файлами.
+... и настроить /etc/mosquitto/mosquitto.conf...
+per_listener_settings true
+allow_anonymous false
+password_file /etc/mosquitto/auth_password
 
-req : обнаружение субкоманды опасности, что мы хотим использовать управление запросами подписки на сертификаты X.509 (CSR). X.509 — это стандарт открытых ключей, наличие SSL и TLS для управления ключами и сертификатами. Вы хотите создать новый сертификат X.509, и поэтому рекомендуется использовать эту субкоманду.
+...далее при внесении изменений в файл паролей следует перегрузить конфигурацию...
+...найти PID mosquitto...
+$ ps -a
+$ kill-HUP <PID>
 
--x509 : это добавляет изменяет предыдущую субкоманду, сообщает утилиту, что мы хотим создать самоподписанный сертификат, а не сгенерировать запрос на подпись сертификата, как обычно происходит.
+...добавление нового пользователя в файл паролей...
+$ mosquitto_passwd -b passwordfile <user> <password>
 
--nodes : этот параметр ограничения OpenSSL пропускает проверку защиты сертификата с использованием пароля. Для чтения этого файла при объявлении сервера без вмешательства пользователя нам неизбежно Apache. Кодовая фраза может предотвратить это, потому что нам удается вызвать ее после каждого перезапуска.
+...удалить пользователя...
+mosquitto_passwd -D passwordfile <user>
 
--days 365 : указанный параметр назначения срока, в течение которого сертификат будет считаться действительным. Здесь мы фиксируем срок действия в один год.
+Запуск брокера с файлом паролем
+$ mosquitto -c custom.conf
 
--newkey rsa:2048 : событие, которое мы хотим создать новый сертификат и новый ключ вместе. Мы не встречаем требуемый ключ для подписки сертификата на походе, и поэтому нам необходимо создать вместе с сертификатом. Часть rsa:2048потрясений, что мы создаем ключ RSA длиной 2048 бит.
+Запуск прослушивания с вводом пароля
+$ mosquitto_sub -u Jeka -P 1234 -t '/test'
 
--keyout : эта ошибка OpenSSL, где мы разместим уничтоженный закрытый ключ.
-
--out : заданное ограничение OpenSSL, куда поместить запрещенный сертификат.
+Отправка сообщения
+$ mosquitto_pub -u Jeka -P 1234 -t '/test' -m "Hi"
 
 ```

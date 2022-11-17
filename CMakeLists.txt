@@ -13,3 +13,4 @@ include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(Esp32_wifi)
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wno-unused-variable -Wno-unused-parameter -Wno-unused-but-set-variable -Werror=unused-label")
  
+# target_add_binary_data(mqtt_ssl.elf "main/ca.crt" TEXT)
