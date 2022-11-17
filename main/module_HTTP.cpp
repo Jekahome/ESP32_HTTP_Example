@@ -135,7 +135,6 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt){
             esp_http_client_set_header(evt->client, "Accept", "text/html");
             break;            
         }
-
     }
     return ESP_OK;
 }
@@ -231,7 +230,6 @@ bool module_HTTP::check_auth(httpd_req_t *req){
         }else{ // POST
             httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "UNAUTHORIZED");
         }
-        
         return ESP_OK;
     }
     return !ret;
@@ -256,8 +254,8 @@ esp_err_t module_HTTP::json_post_handler(httpd_req_t *req){
     WORD_ALIGNED_ATTR int ret = httpd_req_recv(req, content, recv_size);
     if (ret <= 0) {  
         if (ret == HTTPD_SOCK_ERR_TIMEOUT) {  
-              ESP_LOGE(TAG, "HTTPD_SOCK_ERR_TIMEOUT" );
-              httpd_resp_send_408(req);
+            ESP_LOGE(TAG, "HTTPD_SOCK_ERR_TIMEOUT" );
+            httpd_resp_send_408(req);
         }   
         return ESP_FAIL;
     }
@@ -283,10 +281,10 @@ esp_err_t module_HTTP::json_post_handler(httpd_req_t *req){
         command =  _command->valueint;
         //printf("Checking command %d %d\n", _command->valueint,command);
     }else{
-         ESP_LOGE(TAG, "Invalid JSON arguments.Not found key 'command'" );
-         const char resp[] = "Invalid JSON arguments.Not found key 'command'";
-         httpd_resp_send(req, resp, strlen(resp));
-         return ESP_ERR_INVALID_ARG;
+        ESP_LOGE(TAG, "Invalid JSON arguments.Not found key 'command'" );
+        const char resp[] = "Invalid JSON arguments.Not found key 'command'";
+        httpd_resp_send(req, resp, strlen(resp));
+        return ESP_ERR_INVALID_ARG;
     }
 
     switch ( command ) {
@@ -339,13 +337,12 @@ For send picture => curl -d '{\"command\":3,\"file\":\"SENTENCE.RAW\"}' -H \"Con
 For get sentence => curl -d '{\"command\":9}' -H \"Content-Type: application/json\" 192.168.1...:80/command\n \
 For esp32cam restart => curl -d '{\"command\":13}' -H \"Content-Type: application/json\" 192.168.1...:80/command\n \
 ";
-              httpd_resp_send(req, resp, strlen(resp));
-              return ESP_ERR_INVALID_ARG;
+            httpd_resp_send(req, resp, strlen(resp));
+            return ESP_ERR_INVALID_ARG;
      }
-
-      const char resp[] = "Ok";
-      httpd_resp_send(req, resp, strlen(resp));
-      return ESP_OK;
+    const char resp[] = "Ok";
+    httpd_resp_send(req, resp, strlen(resp));
+    return ESP_OK;
 }
 
 //--------------------------------------------------------------------------------------------------------------------
@@ -360,10 +357,8 @@ esp_err_t module_HTTP::echo_post_handler(httpd_req_t *req){
     if (!module_HTTP::check_auth(req)){ 
         return ESP_OK;
     }
-      
     char buf[100];
     int ret, remaining = req->content_len;
-
     while (remaining > 0) {
         // Read the data for the request 
         if ((ret = httpd_req_recv(req, buf, min(remaining, sizeof(buf)))) <= 0) {
@@ -373,17 +368,14 @@ esp_err_t module_HTTP::echo_post_handler(httpd_req_t *req){
             }
             return ESP_FAIL;
         }
-
         // Send back the same data 
         httpd_resp_send_chunk(req, buf, ret);
         remaining -= ret;
-
         // Log data received 
         ESP_LOGI(TAG, "=========== RECEIVED DATA ==========");
         ESP_LOGI(TAG, "%.*s", ret, buf);
         ESP_LOGI(TAG, "====================================");
     }
-
     // End response
     httpd_resp_send_chunk(req, NULL, 0);
     return ESP_OK;
@@ -422,7 +414,6 @@ esp_err_t module_HTTP::index_get_handler(httpd_req_t *req){
     if (min_free_heap_size < 40000){
         ESP_LOGE(TAG, "Not enough memory in heap .Need 40kb"); 
     }
-    
 
     httpd_resp_set_type(req, "text/html");
     //httpd_resp_send(req, index_html, HTTPD_RESP_USE_STRLEN);
@@ -502,7 +493,6 @@ static void print_peer_cert_info(const mbedtls_ssl_context *ssl){
     } else {
         ESP_LOGW(TAG, "Could not obtain the peer certificate!");
     }
-
     free(buf);
 }
 #endif
