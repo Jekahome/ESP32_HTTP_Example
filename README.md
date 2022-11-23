@@ -21,9 +21,6 @@
 
 (Использовать ассиметричное шифрование (закрытый/открытый ключ) написать свой шифратор и дешифратор)
 
-#### 10. Настроить протокол [Modbus](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/protocols/modbus.html) (не реализованно)
-
-#### 11. Настроить протокол [COAP](https://www.youtube.com/watch?v=pfG8uEDZj5g&list=PLuudOZcE9EgmUtYjYNZz0fhncQPbTBFLU&index=21) (не реализованно)
 
 ------------------------------------------------------------------------------------------------------------
 
