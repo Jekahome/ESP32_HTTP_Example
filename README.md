@@ -20,13 +20,9 @@
 9. MQTT шифрование собщений
 (Использовать ассиметричное шифрование (закрытый/открытый ключ) написать свой шифратор и дешифратор)
 
-10. Настроить протокол [Modbus] 
+10. Настроить протокол [Modbus](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/protocols/modbus.html)
 
-[Modbus]:(https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/protocols/modbus.html)
-
-11. Настроить протокол [COAP] 
-
-[COAP]:(https://www.youtube.com/watch?v=pfG8uEDZj5g&list=PLuudOZcE9EgmUtYjYNZz0fhncQPbTBFLU&index=21)
+11. Настроить протокол [COAP](https://www.youtube.com/watch?v=pfG8uEDZj5g&list=PLuudOZcE9EgmUtYjYNZz0fhncQPbTBFLU&index=21)
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -121,7 +117,7 @@ $ sudo service mosquitto stop
 $ sudo kill $(ps aux |awk '/mosquitto/ {print $2}')
 
 Запуск своим конфигурационным файлом:
-$ mosquitto -c custom.conf
+$ mosquitto -v -c custom.conf
 
 Проверка работоспособности:
 $ sudo netstat -tunlp
@@ -178,7 +174,7 @@ $ mosquitto_pub -u Jeka -P 1234 -t '/test' -m "Hi"
 ----------------------------------------------------------------------------------
 
 Запуск брокера на хосте:
-$ mosquitto -c custom.conf
+$ mosquitto -v -c custom.conf
 
 Файл конфигурации custom.conf:
     listener 1883 # 1883 default
