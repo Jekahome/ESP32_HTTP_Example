@@ -6,8 +6,8 @@ cmake_minimum_required(VERSION 3.5)
 FILE(GLOB_RECURSE partitions ${CMAKE_SOURCE_DIR}/main/partitions/partitions.csv)
 set(SDKCONFIG_DEFAULTS ${partitions})
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c99")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11") 
+#target_compile_options(${COMPONENT_LIB} PUBLIC -std=c++14)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(Esp32_wifi)

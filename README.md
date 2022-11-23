@@ -5,19 +5,28 @@
 
 #### 2. HTTP Server GET/POST 
 
-#### 3 .HTTP Authentication 
+#### 3. HTTP Authentication 
 
 #### 4. Работа с image,favicon в HTML разметке
 
-#### 5. Обработка запросов javascript клиента (зажечь LED)
-     
-(https://esp32tutorials.com/esp32-web-server-esp-idf/)
+#### 5. [Обработка запросов javascript клиента (зажечь LED)](https://esp32tutorials.com/esp32-web-server-esp-idf/)
 
-#### 6. Парсинг JSON запросов
+#### 6. Парсинг HTTP JSON запросов
 
-#### 7. Настроить HTTPS
+#### 7. Настроить протокол HTTPS
 
-#### 8. Настроить MQTT Password Authentication
+#### 8. [Настроить протокол MQTT с Password Authentication](http://www.steves-internet-guide.com/mqtt-security-mechanisms/)
+
+9. MQTT шифрование собщений
+(Использовать ассиметричное шифрование (закрытый/открытый ключ) написать свой шифратор и дешифратор)
+
+10. Настроить протокол [Modbus] 
+
+[Modbus]:(https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-reference/protocols/modbus.html)
+
+11. Настроить протокол [COAP] 
+
+[COAP]:(https://www.youtube.com/watch?v=pfG8uEDZj5g&list=PLuudOZcE9EgmUtYjYNZz0fhncQPbTBFLU&index=21)
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -176,13 +185,73 @@ $ mosquitto -c custom.conf
     allow_anonymous false # аутентификация
     password_file /etc/mosquitto/auth_password
     max_packet_size 1000 # default максимальный размер сообщения в 268_435_456 байт
+    # use client --id-prefix
+    clientid_prefixes J1- 
 
 Подписка с хоста на '/topic/esp32_to_all':
-$ mosquitto_sub -u Jeka -P 1234 -t '/topic/esp32_to_all'
+$ mosquitto_sub -u Jeka -P 1234 -t '/topic/esp32_to_all' --id-prefix J1-
 
 Отправка сообщения с хоста в '/topic/all_to_esp32: 
-$ mosquitto_sub -u Jeka -P 1234 -t '/topic/all_to_esp32' -m "hi"
+$ mosquitto_sub -t '/topic/esp32_to_all' -u Jeka -P 1234 --id-prefix J1- -m "hi"
 
 Так же можно подписаться на topic из удаленного хоста
 $ mosquitto_sub -h mqtt.eclipseprojects.io -t '/test'
+
+-----------------------------------------------------------------------------------
+
+Sniffing use Wireshark
+
+Install Wireshark:
+https://linuxhint.com/install_wireshark_ubuntu/
+$ sudo apt update
+$ sudo apt install -y wireshark # для запуска Wireshark без root-доступа
+$ sudo usermod -aG wireshark $(whoami)
+$ sudo reboot # перезагрузка системы
+
+
+Логин и пароль видны в пакете в Info:Connect Command:
+
+    №:141	
+    Time:57.246318668	
+    Source:192.168.1.166	
+    Destination:192.168.1.168
+    Protocol:MQTT	
+    Length:94	
+    Info:Connect Command
+    Payload:
+    HEX to TEXT ... 4a 31 2d 00 04 4a 65 6b 61 00 04 31 32 33 34   J1-..Jeka..1234
+     
+
+Сообщение в Info:Publish Message [/topic/esp32_to_all]:
+
+    №:164	
+    Time:20.608313553	
+    Source:192.168.1.166	
+    Destination:192.168.1.168	
+    Protocol:MQTT	
+    Length:94	
+    Info:Publish Message [/topic/esp32_to_all]
+    Payload:.... 2f 74 6f 70 69 63 2f 65 73 70 33 32 5f 74 6f 5f 61 6c 6c 31 31 31
+        Потверждение HEX to TEXT Шестнадцатеричный код в текст
+        https://www.hextotext.net/ru/convert-hex-to-text
+
+        2f746f7069632f65737033325f746f5f616c6c313131 => /topic/esp32_to_all111
+
+
+
+Пример отправки пакетов на ESP32 IP:192.168.1.166 с хост машины IP:192.168.1.168:
+
+№   Time        Source          Destination     Protocol  Length  Info
+43	9.323998232	192.168.1.166	192.168.1.168	MQTT	  94      Connect Command
+payload:
+...  4a 65 6b 61 00 04 31 32 33 34          Jeka..1234
+
+
+
+№   Time        Source          Destination     Protocol  Length  Info
+15	5.602416198	192.168.1.168	192.168.1.166	MQTT	  82	  Publish Message [/topic/all_to_esp32]
+payload:
+...  
+2f 74 6f 70 69 63 2f 61 6c 6c 5f 74 6f 5f 65 73 70 33 32 34 34 34  /topic/all_to_esp32444
+ 
 ```

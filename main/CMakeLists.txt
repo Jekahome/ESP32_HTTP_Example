@@ -25,3 +25,5 @@ target_compile_options(${COMPONENT_LIB} PUBLIC  -Wno-unused-variable
 target_compile_options(${COMPONENT_LIB} PRIVATE "-Wno-format")
 target_compile_options(${COMPONENT_LIB} PUBLIC -D CONFIG_BLINK_GPIO=2)
 
+
+ 
